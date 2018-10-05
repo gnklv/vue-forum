@@ -1,0 +1,81 @@
+<template>
+  <header 
+    id="header" 
+    class="header">
+    <router-link
+      :to="{name: 'Home'}"
+      class="logo"
+    >
+      <img src="../assets/img/vueschool-logo.svg">
+    </router-link>
+    <div class="btn-hamburger">
+      <!-- use .btn-humburger-active to open the menu -->
+      <div class="top bar"/>
+      <div class="middle bar"/>
+      <div class="bottom bar"/>
+    </div>
+    <!-- use .navbar-open to open nav -->
+    <nav class="navbar">
+      <ul>
+        <!--<li class="navbar-item">-->
+        <!--<a href="index.html">Home</a>-->
+        <!--</li>-->
+        <!--<li class="navbar-item">-->
+        <!--<a href="category.html">Category</a>-->
+        <!--</li>-->
+        <!--<li class="navbar-item">-->
+        <!--<a href="forum.html">Forum</a>-->
+        <!--</li>-->
+        <!--<li class="navbar-item">-->
+        <!--<a href="thread.html">Thread</a>-->
+        <!--</li>-->
+        <!--&lt;!&ndash; Show these option only on mobile&ndash;&gt;-->
+        <!--<li class="navbar-item mobile-only">-->
+        <!--<a href="profile.html">My Profile</a>-->
+        <!--</li>-->
+        <!--<li class="navbar-item mobile-only">-->
+        <!--<a href="#">Logout</a>-->
+        <!--</li>-->
+        <li 
+          v-if="user" 
+          class="navbar-user"
+        >
+          <router-link :to="{ name: 'Profile' }">
+            <img
+              :src="user.avatar"
+              class="avatar-small"
+              alt="">
+            <span>
+              {{ user.name }}
+              <img 
+                class="icon-profile" 
+                src="../assets/img/arrow-profile.svg" 
+                alt="">
+            </span>
+          </router-link>
+          <!-- dropdown menu -->
+          <!-- add class "active-drop" to show the dropdown -->
+          <div id="user-dropdown">
+            <div class="triangle-drop"/>
+            <ul class="dropdown-menu">
+              <li class="dropdown-menu-item"><a href="profile.html">View profile</a></li>
+              <li class="dropdown-menu-item"><a href="#">Log out</a></li>
+            </ul>
+          </div>
+        </li>
+      </ul>
+    </nav>
+  </header>
+</template>
+
+<script>
+import { mapGetters } from 'vuex';
+
+export default {
+  computed: {
+    ...mapGetters({
+      user: 'authUser'
+    })
+  }
+};
+</script>
