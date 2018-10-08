@@ -12,6 +12,8 @@ export default {
     const updates = {};
     updates[`posts/${postId}`] = post;
     updates[`threads/${post.threadId}/posts/${postId}`] = postId;
+    updates[`threads/${post.threadId}/contributors/${post.userId}`] =
+      post.userId;
     updates[`users/${post.userId}/posts/${postId}`] = postId;
     firebase
       .database()
@@ -22,6 +24,10 @@ export default {
         commit('appendPostToThread', {
           parentId: post.threadId,
           childId: postId
+        });
+        commit('appendContributorToThread', {
+          parentId: post.threadId,
+          childId: post.userId
         });
         commit('appendPostToUser', { parentId: post.userId, childId: postId });
         return Promise.resolve(state.posts[postId]);
@@ -93,35 +99,71 @@ export default {
   updatePost: ({ state, commit }, { id, text }) => {
     return new Promise((resolve, reject) => {
       const post = state.posts[id];
-      commit('setPost', {
-        postId: id,
-        post: {
-          ...post,
-          text,
-          edited: {
-            at: Math.floor(Date.now() / 1000),
-            by: state.authId
-          }
-        }
-      });
-      resolve(post);
+      const edited = {
+        at: Math.floor(Date.now() / 1000),
+        by: state.authId
+      };
+      const updates = { text, edited };
+      firebase
+        .database()
+        .ref('posts')
+        .child(id)
+        .update(updates)
+        .then(() => {
+          commit('setItem', {
+            resource: 'posts',
+            id,
+            item: {
+              ...post,
+              text,
+              edited
+            }
+          });
+          resolve(post);
+        });
     });
   },
 
   updateThread: ({ state, commit, dispatch }, { title, text, id }) => {
     return new Promise((resolve, reject) => {
       const thread = state.threads[id];
-      const newThread = { ...thread, title };
-      commit('setThread', { thread: newThread, threadId: id });
+      const post = state.posts[thread.firstPostId];
 
-      dispatch('updatePost', { id: thread.firstPostId, text }).then(() => {
-        resolve(newThread);
-      });
+      const edited = {
+        at: Math.floor(Date.now() / 1000),
+        by: state.authId
+      };
+      const updates = {};
+      updates[`posts/${thread.firstPostId}/text`] = text;
+      updates[`posts/${thread.firstPostId}/edited`] = edited;
+      updates[`threads/${id}/title`] = title;
+
+      firebase
+        .database()
+        .ref()
+        .update(updates)
+        .then(() => {
+          commit('setItem', {
+            resource: 'threads',
+            item: { ...thread, title },
+            id
+          });
+          commit('setItem', {
+            resource: 'posts',
+            id: thread.firstPostId,
+            item: {
+              ...post,
+              text,
+              edited
+            }
+          });
+          resolve(post);
+        });
     });
   },
 
   updateUser: ({ commit }, user) => {
-    commit('setUser', { user, userId: user['.key'] });
+    commit('setItem', { resource: 'users', item: user, id: user['.key'] });
   },
 
   fetchCategory: ({ dispatch }, { id }) =>
@@ -171,8 +213,8 @@ export default {
               item: category
             });
           });
+          resolve(Object.values(state.categories));
         });
-      resolve(Object.values(state.categories));
     });
   },
 

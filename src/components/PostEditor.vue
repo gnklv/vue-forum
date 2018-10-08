@@ -27,9 +27,6 @@
 <script>
 export default {
   props: {
-    threadId: {
-      required: true
-    },
     // eslint-disable-next-line vue/require-default-prop
     post: {
       type: Object,
@@ -67,8 +64,7 @@ export default {
     },
     create() {
       const post = {
-        text: this.text,
-        threadId: this.threadId
+        text: this.text
       };
       this.text = '';
 
