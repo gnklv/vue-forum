@@ -24,7 +24,9 @@ new Vue({
     };
     firebase.initializeApp(config);
 
-    store.dispatch('fetchUser', { id: store.state.authId });
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) store.dispatch('fetchAuthUser');
+    });
   },
   render: h => h(App)
 }).$mount('#app');

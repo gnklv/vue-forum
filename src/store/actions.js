@@ -96,6 +96,88 @@ export default {
     });
   },
 
+  createUser: (
+    { state, commit },
+    { id, email, name, username, avatar = null }
+  ) =>
+    new Promise((resolve, reject) => {
+      const registeredAt = Math.floor(Date.now() / 1000);
+      const usernameLower = username.toLowerCase();
+      email = email.toLowerCase();
+      const user = {
+        email,
+        name,
+        username,
+        avatar,
+        usernameLower,
+        registeredAt
+      };
+      firebase
+        .database()
+        .ref('users')
+        .child(id)
+        .set(user)
+        .then(() => {
+          commit('setItem', { resource: 'users', id: id, item: user });
+          resolve(state.users[id]);
+        });
+    }),
+
+  registerUserWithEmailAndPassword: (
+    { dispatch },
+    { email, name, username, password, avatar = null }
+  ) =>
+    firebase
+      .auth()
+      .createUserWithEmailAndPassword(email, password)
+      .then(user =>
+        dispatch('createUser', {
+          id: user.uid,
+          email,
+          name,
+          username,
+          password,
+          avatar
+        })
+      )
+      .then(() => dispatch('fetchAuthUser')),
+
+  signInWithEmailAndPassword: ({ commit }, { email, password }) =>
+    firebase.auth().signInWithEmailAndPassword(email, password),
+
+  signInWithGoogle: ({ dispatch }) => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    return firebase
+      .auth()
+      .signInWithPopup(provider)
+      .then(data => {
+        const user = data.user;
+        firebase
+          .database()
+          .ref('users')
+          .child(user.uid)
+          .once('value', snapshot => {
+            if (!snapshot.exists()) {
+              return dispatch('createUser', {
+                id: user.uid,
+                name: user.displayName,
+                email: user.email,
+                username: user.email,
+                avatar: user.photoURL
+              }).then(() => dispatch('fetchAuthUser'));
+            }
+          });
+      });
+  },
+
+  signOut: ({ commit }) =>
+    firebase
+      .auth()
+      .signOut()
+      .then(() => {
+        commit('setAuthId', null);
+      }),
+
   updatePost: ({ state, commit }, { id, text }) => {
     return new Promise((resolve, reject) => {
       const post = state.posts[id];
@@ -164,6 +246,27 @@ export default {
 
   updateUser: ({ commit }, user) => {
     commit('setItem', { resource: 'users', item: user, id: user['.key'] });
+  },
+
+  fetchAuthUser: ({ dispatch, commit }) => {
+    const userId = firebase.auth().currentUser.uid;
+    return new Promise((resolve, reject) => {
+      // check if user exists in the database
+      firebase
+        .database()
+        .ref('users')
+        .child(userId)
+        .once('value', snapshot => {
+          if (snapshot.exists()) {
+            return dispatch('fetchUser', { id: userId }).then(user => {
+              commit('setAuthId', userId);
+              resolve(user);
+            });
+          } else {
+            resolve(null);
+          }
+        });
+    });
   },
 
   fetchCategory: ({ dispatch }, { id }) =>

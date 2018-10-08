@@ -16,7 +16,7 @@
     </div>
     <!-- use .navbar-open to open nav -->
     <nav class="navbar">
-      <ul>
+      <ul v-if="user">
         <!--<li class="navbar-item">-->
         <!--<a href="index.html">Home</a>-->
         <!--</li>-->
@@ -36,11 +36,8 @@
         <!--<li class="navbar-item mobile-only">-->
         <!--<a href="#">Logout</a>-->
         <!--</li>-->
-        <li 
-          v-if="user" 
-          class="navbar-user"
-        >
-          <router-link :to="{ name: 'Profile' }">
+        <li class="navbar-user">
+          <a @click.prevent="userDropdownOpen = !userDropdownOpen">
             <img
               :src="user.avatar"
               class="avatar-small"
@@ -52,16 +49,34 @@
                 src="../assets/img/arrow-profile.svg" 
                 alt="">
             </span>
-          </router-link>
+          </a>
           <!-- dropdown menu -->
           <!-- add class "active-drop" to show the dropdown -->
-          <div id="user-dropdown">
+          <div 
+            id="user-dropdown" 
+            :class="{'active-drop': userDropdownOpen}"
+          >
             <div class="triangle-drop"/>
             <ul class="dropdown-menu">
-              <li class="dropdown-menu-item"><a href="profile.html">View profile</a></li>
-              <li class="dropdown-menu-item"><a href="#">Log out</a></li>
+              <li class="dropdown-menu-item">
+                <router-link :to="{ name: 'Profile' }">View profile</router-link>
+              </li>
+              <li class="dropdown-menu-item">
+                <a
+                  href="#"
+                  @click.prevent="$store.dispatch('signOut')"
+                >Sign out</a>
+              </li>
             </ul>
           </div>
+        </li>
+      </ul>
+      <ul v-else>
+        <li class="navbar-item">
+          <router-link :to="{ name: 'SignIn' }">Sign In</router-link>
+        </li>
+        <li class="navbar-item">
+          <router-link :to="{ name: 'Register' }">Register</router-link>
         </li>
       </ul>
     </nav>
@@ -72,6 +87,12 @@
 import { mapGetters } from 'vuex';
 
 export default {
+  data() {
+    return {
+      userDropdownOpen: false
+    };
+  },
+
   computed: {
     ...mapGetters({
       user: 'authUser'
