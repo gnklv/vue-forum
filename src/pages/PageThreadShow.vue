@@ -3,11 +3,9 @@
     v-if="asyncDataStatus_ready"
     class="col-large push-top"
   >
-    <h1>
-      {{ thread.title }}
-
+    <h1>{{ thread.title }}
       <router-link
-        :to="{ name: 'ThreadEdit', id }"
+        :to="{name: 'ThreadEdit', id}"
         class="btn-green btn-small"
         tag="button"
       >
@@ -15,27 +13,44 @@
       </router-link>
     </h1>
     <p>
-      <!-- eslint-disable vue/max-attributes-per-line -->
-      By <a href="#" class="link-unstyled">{{ user.name }}</a>, <AppDate :timestamp="thread.publishedAt"/>.
-      <span style="float: right; margin-top: 2px" class="hide-mobile text-faded text-small">
+      By
+      <a 
+        href="#" 
+        class="link-unstyled">
+        {{ user.name }}
+      </a>,
+      <AppDate :timestamp="thread.publishedAt"/>.
+      <span 
+        style="float:right; margin-top: 2px;" 
+        class="hide-mobile text-faded text-small"
+      >
         {{ repliesCount }} replies by {{ contributorsCount }} contributors
       </span>
-      <!-- eslint-enable vue/max-attributes-per-line -->
     </p>
     <PostList :posts="posts"/>
-    <PostEditor :thread-id="id" />
+    <PostEditor
+      v-if="authUser"
+      :thread-id="id"
+    />
+    <div 
+      v-else 
+      class="text-center" 
+      style="margin-bottom: 50px;"
+    >
+      <router-link :to="{name: 'SignIn', query: {redirectTo: $route.path}}">Sign in</router-link> or
+      <router-link :to="{name: 'Register', query: {redirectTo: $route.path}}">Register</router-link> to post a reply.
+    </div>
   </div>
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { mapGetters, mapActions } from 'vuex';
+import { countObjectProperties } from '@/utils';
 import PostList from '@/components/PostList';
 import PostEditor from '@/components/PostEditor';
-import { countObjectProperties } from '@/utils';
 import asyncDataStatus from '@/mixins/asyncDataStatus';
 
 export default {
-  name: 'ThreadShow',
   components: {
     PostList,
     PostEditor
@@ -51,6 +66,9 @@ export default {
   },
 
   computed: {
+    ...mapGetters({
+      authUser: 'authUser'
+    }),
     thread() {
       return this.$store.state.threads[this.id];
     },

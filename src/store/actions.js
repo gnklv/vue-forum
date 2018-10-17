@@ -1,7 +1,26 @@
 import firebase from 'firebase';
+import { removeEmptyProperties } from '@/utils';
 
 export default {
-  createPost: ({ state, commit }, post) => {
+  initAuthentication: ({ dispatch, commit, state }) =>
+    new Promise((resolve, reject) => {
+      // unsubscribe observer if already listening
+      if (state.unsubscribeAuthObserver) {
+        state.unsubscribeAuthObserver();
+      }
+
+      const unsubscribe = firebase.auth().onAuthStateChanged(user => {
+        console.log('👣 the user has changed');
+        if (user) {
+          dispatch('fetchAuthUser').then(dbUser => resolve(dbUser));
+        } else {
+          resolve(null);
+        }
+      });
+      commit('setUnsubscribeAuthObserver', unsubscribe);
+    }),
+
+  createPost: ({ commit, state }, post) => {
     const postId = firebase
       .database()
       .ref('posts')
@@ -34,8 +53,8 @@ export default {
       });
   },
 
-  createThread: ({ state, commit, dispatch }, { text, title, forumId }) => {
-    return new Promise((resolve, reject) => {
+  createThread: ({ state, commit, dispatch }, { text, title, forumId }) =>
+    new Promise((resolve, reject) => {
       const threadId = firebase
         .database()
         .ref('threads')
@@ -91,10 +110,10 @@ export default {
             parentId: post.userId,
             childId: postId
           });
+
           resolve(state.threads[threadId]);
         });
-    });
-  },
+    }),
 
   createUser: (
     { state, commit },
@@ -105,10 +124,10 @@ export default {
       const usernameLower = username.toLowerCase();
       email = email.toLowerCase();
       const user = {
+        avatar,
         email,
         name,
         username,
-        avatar,
         usernameLower,
         registeredAt
       };
@@ -130,19 +149,19 @@ export default {
     firebase
       .auth()
       .createUserWithEmailAndPassword(email, password)
-      .then(user =>
-        dispatch('createUser', {
+      .then(user => {
+        return dispatch('createUser', {
           id: user.uid,
           email,
           name,
           username,
           password,
           avatar
-        })
-      )
+        });
+      })
       .then(() => dispatch('fetchAuthUser')),
 
-  signInWithEmailAndPassword: ({ commit }, { email, password }) =>
+  signInWithEmailAndPassword: (context, { email, password }) =>
     firebase.auth().signInWithEmailAndPassword(email, password),
 
   signInWithGoogle: ({ dispatch }) => {
@@ -178,36 +197,8 @@ export default {
         commit('setAuthId', null);
       }),
 
-  updatePost: ({ state, commit }, { id, text }) => {
-    return new Promise((resolve, reject) => {
-      const post = state.posts[id];
-      const edited = {
-        at: Math.floor(Date.now() / 1000),
-        by: state.authId
-      };
-      const updates = { text, edited };
-      firebase
-        .database()
-        .ref('posts')
-        .child(id)
-        .update(updates)
-        .then(() => {
-          commit('setItem', {
-            resource: 'posts',
-            id,
-            item: {
-              ...post,
-              text,
-              edited
-            }
-          });
-          resolve(post);
-        });
-    });
-  },
-
-  updateThread: ({ state, commit, dispatch }, { title, text, id }) => {
-    return new Promise((resolve, reject) => {
+  updateThread: ({ state, commit, dispatch }, { title, text, id }) =>
+    new Promise((resolve, reject) => {
       const thread = state.threads[id];
       const post = state.posts[thread.firstPostId];
 
@@ -215,6 +206,7 @@ export default {
         at: Math.floor(Date.now() / 1000),
         by: state.authId
       };
+
       const updates = {};
       updates[`posts/${thread.firstPostId}/text`] = text;
       updates[`posts/${thread.firstPostId}/edited`] = edited;
@@ -225,64 +217,65 @@ export default {
         .ref()
         .update(updates)
         .then(() => {
-          commit('setItem', {
-            resource: 'threads',
-            item: { ...thread, title },
-            id
-          });
-          commit('setItem', {
-            resource: 'posts',
-            id: thread.firstPostId,
-            item: {
-              ...post,
-              text,
-              edited
-            }
+          commit('setThread', { thread: { ...thread, title }, threadId: id });
+          commit('setPost', {
+            postId: thread.firstPostId,
+            post: { ...post, text, edited }
           });
           resolve(post);
         });
-    });
-  },
+    }),
+
+  updatePost: ({ state, commit }, { id, text }) =>
+    new Promise((resolve, reject) => {
+      const post = state.posts[id];
+      const edited = {
+        at: Math.floor(Date.now() / 1000),
+        by: state.authId
+      };
+
+      const updates = { text, edited };
+      firebase
+        .database()
+        .ref('posts')
+        .child(id)
+        .update(updates)
+        .then(() => {
+          commit('setPost', { postId: id, post: { ...post, text, edited } });
+          resolve(post);
+        });
+    }),
 
   updateUser: ({ commit }, user) => {
-    commit('setItem', { resource: 'users', item: user, id: user['.key'] });
-  },
+    const updates = {
+      avatar: user.avatar,
+      username: user.username,
+      name: user.name,
+      bio: user.bio,
+      website: user.website,
+      email: user.email,
+      location: user.location
+    };
 
-  fetchAuthUser: ({ dispatch, commit }) => {
-    const userId = firebase.auth().currentUser.uid;
     return new Promise((resolve, reject) => {
-      // check if user exists in the database
       firebase
         .database()
         .ref('users')
-        .child(userId)
-        .once('value', snapshot => {
-          if (snapshot.exists()) {
-            return dispatch('fetchUser', { id: userId }).then(user => {
-              commit('setAuthId', userId);
-              resolve(user);
-            });
-          } else {
-            resolve(null);
-          }
+        .child(user['.key'])
+        .update(removeEmptyProperties(updates))
+        .then(() => {
+          commit('setUser', { userId: user['.key'], user });
+          resolve(user);
         });
     });
   },
 
-  fetchCategory: ({ dispatch }, { id }) =>
-    dispatch('fetchItem', { resource: 'categories', id, emoji: '🏷' }),
-
-  fetchForum: ({ dispatch }, { id }) =>
-    dispatch('fetchItem', { resource: 'forums', id, emoji: '🌧' }),
-
-  fetchThread: ({ dispatch }, { id }) =>
-    dispatch('fetchItem', { resource: 'threads', id, emoji: '📄' }),
-
-  fetchUser: ({ dispatch }, { id }) =>
-    dispatch('fetchItem', { resource: 'users', id, emoji: '🙋' }),
-
-  fetchPost: ({ dispatch }, { id }) =>
-    dispatch('fetchItem', { resource: 'posts', id, emoji: '💬' }),
+  fetchItems: ({ dispatch }, { ids, resource, emoji }) => {
+    ids = Array.isArray(ids) ? ids : Object.keys(ids);
+    return Promise.all(
+      ids.map(id => dispatch('fetchItem', { id, resource, emoji }))
+    );
+  },
 
   fetchCategories: (context, { ids }) =>
     context.dispatch('fetchItems', {
@@ -291,14 +284,33 @@ export default {
       emoji: '🏷'
     }),
 
+  fetchForums: (context, { ids }) =>
+    context.dispatch('fetchItems', {
+      resource: 'forums',
+      ids,
+      emoji: '🌧'
+    }),
+
   fetchThreads: (context, { ids }) =>
-    context.dispatch('fetchItems', { resource: 'threads', ids, emoji: '🌧' }),
+    context.dispatch('fetchItems', {
+      resource: 'threads',
+      ids,
+      emoji: '🌧'
+    }),
 
-  fetchPosts: ({ dispatch }, { ids }) =>
-    dispatch('fetchItems', { resource: 'posts', emoji: '💬', ids }),
+  fetchPosts: (context, { ids }) =>
+    context.dispatch('fetchItems', {
+      resource: 'posts',
+      ids,
+      emoji: '💬'
+    }),
 
-  fetchForums: ({ dispatch }, { ids }) =>
-    dispatch('fetchItems', { resource: 'forums', emoji: '🌧', ids }),
+  fetchUsers: (context, { ids }) =>
+    context.dispatch('fetchItems', {
+      resource: 'users',
+      ids,
+      emoji: '🙋'
+    }),
 
   fetchAllCategories: ({ state, commit }) => {
     console.log('🔥', '🏷', 'all');
@@ -339,10 +351,38 @@ export default {
     });
   },
 
-  fetchItems: ({ dispatch }, { ids, resource, emoji }) => {
-    ids = Array.isArray(ids) ? ids : Object.keys(ids);
-    return Promise.all(
-      ids.map(id => dispatch('fetchItem', { id, resource, emoji }))
-    );
-  }
+  fetchAuthUser: ({ dispatch, commit }) => {
+    const userId = firebase.auth().currentUser.uid;
+    return new Promise((resolve, reject) => {
+      firebase
+        .database()
+        .ref('users')
+        .child(userId)
+        .once('value', snapshot => {
+          if (snapshot.exists()) {
+            return dispatch('fetchUser', { id: userId }).then(user => {
+              commit('setAuthId', userId);
+              resolve(user);
+            });
+          } else {
+            resolve(null);
+          }
+        });
+    });
+  },
+
+  fetchCategory: ({ dispatch }, { id }) =>
+    dispatch('fetchItem', { resource: 'categories', id, emoji: '🏷' }),
+
+  fetchForum: ({ dispatch }, { id }) =>
+    dispatch('fetchItem', { resource: 'forums', id, emoji: '🌧' }),
+
+  fetchThread: ({ dispatch }, { id }) =>
+    dispatch('fetchItem', { resource: 'threads', id, emoji: '📄' }),
+
+  fetchUser: ({ dispatch }, { id }) =>
+    dispatch('fetchItem', { resource: 'users', id, emoji: '🙋' }),
+
+  fetchPost: ({ dispatch }, { id }) =>
+    dispatch('fetchItem', { resource: 'posts', id, emoji: '💬' })
 };

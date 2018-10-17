@@ -1,53 +1,57 @@
 <template>
-  <div 
-    v-if="post && user" 
+  <div
+    v-if="post && user"
     class="post"
   >
+
     <div class="user-info">
       <a 
         href="#" 
-        class="user-name"
-      >{{ user.name }}</a>
-
+        class="user-name">{{ user.name }}</a>
       <a href="#">
         <img 
           :src="user.avatar" 
           class="avatar-large" 
           alt="">
       </a>
-
       <p class="desktop-only text-small">{{ userThreadsCount }} threads</p>
       <p class="desktop-only text-small">{{ userPostsCount }} posts</p>
     </div>
 
     <div class="post-content">
       <template v-if="!editing">
-        <div>{{ post.text }}</div>
-        <a
-          href="#"
-          style="margin-left: auto;"
-          class="link-unstyled"
-          title="Make a change"
+        <div>
+          {{ post.text }}
+        </div>
+        <a 
+          href="#" 
+          style="margin-left: auto;" 
+          class="link-unstyled" 
+          title="Make a change" 
           @click.prevent="editing = true"
         >
           <i class="fa fa-pencil"/>
         </a>
       </template>
-      <div v-else>
+      <template v-else>
         <PostEditor
           :post="post"
           @save="editing = false"
           @cancel="editing = false"
         />
-      </div>
+      </template>
     </div>
 
     <div class="post-date text-faded">
       <div 
         v-if="post.edited" 
-        class="edition-info">edited</div>
-      <AppDate :timestamp="post.publishedAt" />
+        class="edition-info"
+      >
+        edited
+      </div>
+      <AppDate :timestamp="post.publishedAt"/>
     </div>
+
   </div>
 </template>
 
@@ -58,17 +62,20 @@ export default {
   components: {
     PostEditor
   },
+
   props: {
     post: {
       required: true,
-      typ: Object
+      type: Object
     }
   },
+
   data() {
     return {
       editing: false
     };
   },
+
   computed: {
     user() {
       return this.$store.state.users[this.post.userId];

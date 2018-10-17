@@ -1,4 +1,3 @@
-
 <template>
   <div class="flex-grid justify-center">
     <div class="col-2">
@@ -66,8 +65,6 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
-
 export default {
   data() {
     return {
@@ -86,15 +83,19 @@ export default {
   },
 
   methods: {
-    ...mapActions(['registerUserWithEmailAndPassword', 'signInWithGoogle']),
     register() {
-      this.registerUserWithEmailAndPassword(this.form).then(() =>
-        this.$router.push('/')
-      );
+      this.$store
+        .dispatch('registerUserWithEmailAndPassword', this.form)
+        .then(() => this.successRedirect());
     },
-
     registerWithGoogle() {
-      this.signInWithGoogle().then(() => this.$router.push('/'));
+      this.$store
+        .dispatch('signInWithGoogle')
+        .then(() => this.successRedirect());
+    },
+    successRedirect() {
+      const redirectTo = this.$route.query.redirectTo || { name: 'Home' };
+      this.$router.push(redirectTo);
     }
   }
 };

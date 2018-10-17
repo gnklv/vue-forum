@@ -2,19 +2,19 @@
   <div id="app">
     <TheNavbar />
     <div class="container">
-      <router-view 
+      <router-view
         v-show="showPage"
-        @ready="pageReady"
-      />
-      <AppSpinner v-show="!showPage" />
+        :key="$route.path"
+        @ready="pageReady"/>
+      <AppSpinner v-show="!showPage"/>
     </div>
   </div>
 </template>
 
 <script>
-import NProgress from 'nprogress';
 import TheNavbar from '@/components/TheNavbar';
 import AppSpinner from '@/components/AppSpinner';
+import NProgress from 'nprogress';
 
 export default {
   components: {

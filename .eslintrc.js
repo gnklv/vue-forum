@@ -14,7 +14,8 @@ module.exports = {
         singleQuote: true
       }
     ],
-    'vue/require-prop-types': 'off'
+    'vue/require-prop-types': 'off',
+    'vue/require-default-prop': 'off'
   },
   parserOptions: {
     parser: 'babel-eslint'

@@ -2,8 +2,8 @@
   <div>
     <CategoryListItem
       v-for="category in categories"
-      :key="category['.key']"
       :category="category"
+      :key="category['.key']"
     />
   </div>
 </template>
@@ -15,6 +15,7 @@ export default {
   components: {
     CategoryListItem
   },
+
   props: {
     categories: {
       required: true,

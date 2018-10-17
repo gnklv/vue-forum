@@ -15,6 +15,7 @@ export default {
   components: {
     ForumListItem
   },
+
   props: {
     forums: {
       required: true,

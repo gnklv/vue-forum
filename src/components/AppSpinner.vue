@@ -14,11 +14,9 @@
     <div class="sk-circle12 sk-circle"/>
   </div>
 </template>
-
 <script>
 export default {};
 </script>
-
 <style scoped>
 .sk-fading-circle {
   margin: 100px auto;
@@ -26,7 +24,6 @@ export default {};
   height: 40px;
   position: relative;
 }
-
 .sk-fading-circle .sk-circle {
   width: 100%;
   height: 100%;
@@ -34,7 +31,6 @@ export default {};
   left: 0;
   top: 0;
 }
-
 .sk-fading-circle .sk-circle:before {
   content: '';
   display: block;
@@ -145,7 +141,6 @@ export default {};
   -webkit-animation-delay: -0.1s;
   animation-delay: -0.1s;
 }
-
 @-webkit-keyframes sk-circleFadeDelay {
   0%,
   39%,
@@ -156,7 +151,6 @@ export default {};
     opacity: 1;
   }
 }
-
 @keyframes sk-circleFadeDelay {
   0%,
   39%,

@@ -9,12 +9,10 @@
       </router-link>
       <p>{{ forum.description }}</p>
     </div>
-
     <div class="threads-count">
       <p class="count">{{ threadsCount }}</p>
       {{ threadsCount === 1 ? 'thread' : 'threads' }}
     </div>
-
     <div class="last-thread">
       <!-- TODO: implement later -->
     </div>
@@ -31,6 +29,7 @@ export default {
       type: Object
     }
   },
+
   computed: {
     threadsCount() {
       return countObjectProperties(this.forum.threads);

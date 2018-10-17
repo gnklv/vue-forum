@@ -20,6 +20,12 @@ export default {
 
   mixins: [asyncDataStatus],
 
+  data() {
+    return {
+      ready: false
+    };
+  },
+
   computed: {
     categories() {
       return Object.values(this.$store.state.categories);

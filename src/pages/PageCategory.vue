@@ -1,5 +1,5 @@
 <template>
-  <div 
+  <div
     v-if="asyncDataStatus_ready"
     class="col-full"
   >
@@ -35,7 +35,9 @@ export default {
 
   created() {
     this.fetchCategory({ id: this.id })
-      .then(category => this.fetchForums({ ids: Object.keys(category.forums) }))
+      .then(category => {
+        this.fetchForums({ ids: category.forums });
+      })
       .then(() => {
         this.asyncDataStatus_fetched();
       });

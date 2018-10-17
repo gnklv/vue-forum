@@ -38,7 +38,7 @@
         <label 
           class="form-label" 
           for="user_website">Website</label>
-        <input
+        <input 
           id="user_website" 
           v-model="activeUser.website" 
           autocomplete="off" 
@@ -83,6 +83,7 @@
     <p class="text-xsmall text-faded text-center">Member since june 2003, last visited 4 hours ago</p>
   </div>
 </template>
+
 <script>
 export default {
   props: {
@@ -91,23 +92,26 @@ export default {
       type: Object
     }
   },
+
   data() {
     return {
       activeUser: { ...this.user }
     };
   },
+
   computed: {
-    userPostsCount() {
-      return this.$store.getters.userPostsCount(this.user['.key']);
-    },
     userThreadsCount() {
       return this.$store.getters.userThreadsCount(this.user['.key']);
+    },
+    userPostsCount() {
+      return this.$store.getters.userPostsCount(this.user['.key']);
     }
   },
+
   methods: {
     save() {
       this.$store.dispatch('updateUser', { ...this.activeUser });
-      this.cancel();
+      this.$router.push({ name: 'Profile' });
     },
     cancel() {
       this.$router.push({ name: 'Profile' });

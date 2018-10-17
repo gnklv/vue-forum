@@ -3,10 +3,9 @@
     <div class="profile-card">
       <p class="text-center">
         <img 
-          :src="user.avatar"
-          class="avatar-xlarge"
-          alt=""
-        >
+          :src="user.avatar" 
+          alt="" 
+          class="avatar-xlarge">
       </p>
       <h1 class="title">{{ user.username }}</h1>
       <p class="text-lead">{{ user.name }}</p>
@@ -22,17 +21,13 @@
       <hr>
       <p 
         v-if="user.website" 
-        class="text-large text-center"
-      >
-        <i class="fa fa-globe"/>
-        <a :href="user.website">{{ user.website }}</a>
-      </p>
+        class="text-large text-center"><i class="fa fa-globe"/> <a :href="user.website">{{ user.website }}</a></p>
     </div>
     <p class="text-xsmall text-faded text-center">Member since june 2003, last visited 4 hours ago</p>
     <div class="text-center">
       <hr>
       <router-link
-        :to="{ name: 'ProfileEdit' }"
+        :to="{name: 'ProfileEdit'}"
         class="btn-green btn-small"
       >
         Edit Profile
@@ -49,12 +44,13 @@ export default {
       type: Object
     }
   },
+
   computed: {
-    userPostsCount() {
-      return this.$store.getters.userPostsCount(this.user['.key']);
-    },
     userThreadsCount() {
       return this.$store.getters.userThreadsCount(this.user['.key']);
+    },
+    userPostsCount() {
+      return this.$store.getters.userPostsCount(this.user['.key']);
     }
   }
 };

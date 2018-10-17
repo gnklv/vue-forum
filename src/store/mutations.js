@@ -1,23 +1,40 @@
 import Vue from 'vue';
 
-const makeAppendChildToParentMutation = ({ parent, child }) => {
-  return (state, { childId, parentId }) => {
-    const resource = state[parent][parentId];
-    if (!resource[child]) {
-      Vue.set(resource, child, {});
-    }
-    Vue.set(resource[child], childId, childId);
-  };
+const makeAppendChildToParentMutation = ({ parent, child }) => (
+  state,
+  { childId, parentId }
+) => {
+  const resource = state[parent][parentId];
+  if (!resource[child]) {
+    Vue.set(resource, child, {});
+  }
+  Vue.set(resource[child], childId, childId);
 };
 
 export default {
-  setItem: (state, { resource, id, item }) => {
+  setPost: (state, { post, postId }) => {
+    Vue.set(state.posts, postId, post);
+  },
+
+  setThread: (state, { thread, threadId }) => {
+    Vue.set(state.threads, threadId, thread);
+  },
+
+  setUser: (state, { user, userId }) => {
+    Vue.set(state.users, userId, user);
+  },
+
+  setItem: (state, { item, id, resource }) => {
     item['.key'] = id;
     Vue.set(state[resource], id, item);
   },
 
   setAuthId: (state, id) => {
     state.authId = id;
+  },
+
+  setUnsubscribeAuthObserver: (state, unsubscribe) => {
+    state.unsubscribeAuthObserver = unsubscribe;
   },
 
   appendPostToThread: makeAppendChildToParentMutation({
@@ -27,7 +44,7 @@ export default {
 
   appendContributorToThread: makeAppendChildToParentMutation({
     parent: 'threads',
-    child: 'posts'
+    child: 'contributors'
   }),
 
   appendPostToUser: makeAppendChildToParentMutation({

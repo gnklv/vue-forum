@@ -1,5 +1,5 @@
 <template>
-  <div 
+  <div
     v-if="asyncDataStatus_ready"
     class="forum-wrapper"
   >
@@ -9,16 +9,14 @@
           <h1>{{ forum.name }}</h1>
           <p class="text-lead">{{ forum.description }}</p>
         </div>
-
         <router-link
-          :to="{ name: 'ThreadCreate', params: { forumId: forum['.key'] } }"
+          :to="{name: 'ThreadCreate', params: {forumId: forum['.key']}}"
           class="btn-green btn-small"
         >
           Start a thread
         </router-link>
       </div>
     </div>
-
     <div class="col-full push-top">
       <ThreadList :threads="threads"/>
     </div>

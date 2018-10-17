@@ -51,24 +51,18 @@ export default {
   },
 
   methods: {
-    ...mapActions(['fetchThread', 'fetchPost', 'updateThread']),
+    ...mapActions(['updateThread', 'fetchThread', 'fetchPost']),
     save({ title, text }) {
       this.updateThread({
         id: this.id,
         title,
         text
-      }).then(thread => {
-        this.$router.push({
-          name: 'ThreadShow',
-          params: { id: this.id }
-        });
+      }).then(() => {
+        this.$router.push({ name: 'ThreadShow', params: { id: this.id } });
       });
     },
     cancel() {
-      this.$router.push({
-        name: 'ThreadShow',
-        params: { id: this.id }
-      });
+      this.$router.push({ name: 'ThreadShow', params: { id: this.id } });
     }
   }
 };

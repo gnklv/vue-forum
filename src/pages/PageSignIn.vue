@@ -44,8 +44,6 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
-
 export default {
   data() {
     return {
@@ -61,20 +59,24 @@ export default {
   },
 
   methods: {
-    ...mapActions(['signInWithEmailAndPassword']),
     signIn() {
-      this.signInWithEmailAndPassword({
-        email: this.form.email,
-        password: this.form.password
-      })
-        .then(() => this.$router.push('/'))
+      this.$store
+        .dispatch('signInWithEmailAndPassword', {
+          email: this.form.email,
+          password: this.form.password
+        })
+        .then(() => this.successRedirect())
         .catch(error => alert('🤷‍️' + error.message));
     },
     signInWithGoogle() {
       this.$store
         .dispatch('signInWithGoogle')
-        .then(() => this.$router.push('/'))
+        .then(() => this.successRedirect())
         .catch(error => alert('🤷‍️' + error.message));
+    },
+    successRedirect() {
+      const redirectTo = this.$route.query.redirectTo || { name: 'Home' };
+      this.$router.push(redirectTo);
     }
   }
 };
