@@ -10,6 +10,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import ForumList from './ForumList';
 
 export default {
@@ -25,10 +26,12 @@ export default {
   },
 
   computed: {
+    ...mapState({
+      forums: state => state.forums
+    }),
     categoryForums() {
-      return Object.values(this.$store.state.forums).filter(
-        forum => forum.categoryId === this.category['.key']
-      );
+      return Object.values(this.forums)
+        .filter(forum => forum.categoryId === this.category['.key']);
     }
   }
 };

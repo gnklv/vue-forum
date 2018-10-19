@@ -9,7 +9,7 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { mapState, mapActions } from 'vuex';
 import CategoryListItem from '@/components/CategoryListItem';
 import asyncDataStatus from '@/mixins/asyncDataStatus';
 
@@ -28,8 +28,11 @@ export default {
   },
 
   computed: {
+    ...mapState({
+      categories: state => state.categories
+    }),
     category() {
-      return this.$store.state.categories[this.id];
+      return this.categories[this.id];
     }
   },
 
@@ -44,7 +47,8 @@ export default {
   },
 
   methods: {
-    ...mapActions(['fetchCategory', 'fetchForums'])
+    ...mapActions('forums', ['fetchForums']),
+    ...mapActions('categories', ['fetchCategory'])
   }
 };
 </script>

@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { mapState, mapActions } from 'vuex';
 import ThreadEditor from '@/components/ThreadEditor';
 import asyncDataStatus from '@/mixins/asyncDataStatus';
 
@@ -33,11 +33,15 @@ export default {
   },
 
   computed: {
+    ...mapState({
+      threads: state => state.threads,
+      posts: state => state.posts
+    }),
     thread() {
-      return this.$store.state.threads[this.id];
+      return this.threads[this.id];
     },
     text() {
-      const post = this.$store.state.posts[this.thread.firstPostId];
+      const post = this.posts[this.thread.firstPostId];
       return post ? post.text : null;
     }
   },
@@ -45,19 +49,14 @@ export default {
   created() {
     this.fetchThread({ id: this.id })
       .then(thread => this.fetchPost({ id: thread.firstPostId }))
-      .then(() => {
-        this.asyncDataStatus_fetched();
-      });
+      .then(() => { this.asyncDataStatus_fetched(); });
   },
 
   methods: {
-    ...mapActions(['updateThread', 'fetchThread', 'fetchPost']),
+    ...mapActions('posts', ['fetchPost']),
+    ...mapActions('threads', ['updateThread', 'fetchThread']),
     save({ title, text }) {
-      this.updateThread({
-        id: this.id,
-        title,
-        text
-      }).then(() => {
+      this.updateThread({ id: this.id, title, text }).then(() => {
         this.$router.push({ name: 'ThreadShow', params: { id: this.id } });
       });
     },

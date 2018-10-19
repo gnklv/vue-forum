@@ -16,13 +16,13 @@
         <a href="#">See only started threads?</a>
       </div>
       <hr>
-      <PostList :posts="userPosts"/>
+      <PostList :posts="userPosts(user['.key'])"/>
     </div>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters, mapActions } from 'vuex';
 import PostList from '@/components/PostList';
 import UserProfileCard from '@/components/UserProfileCard';
 import UserProfileCardEditor from '@/components/UserProfileCardEditor';
@@ -46,21 +46,22 @@ export default {
 
   computed: {
     ...mapGetters({
-      user: 'authUser'
-    }),
-    userPosts() {
-      return this.$store.getters.userPosts(this.user['.key']);
-    }
+      user: 'auth/authUser',
+      userPosts: 'users/userPosts'
+    })
   },
 
   created() {
     if (this.user.posts) {
-      this.$store
-        .dispatch('fetchPosts', { ids: this.user.posts })
+      this.fetchPosts({ ids: this.user.posts })
         .then(() => this.asyncDataStatus_fetched());
     } else {
       this.asyncDataStatus_fetched();
     }
+  },
+
+  methods: {
+    ...mapActions('posts', ['fetchPosts'])
   }
 };
 </script>

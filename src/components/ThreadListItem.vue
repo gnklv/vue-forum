@@ -15,7 +15,7 @@
     </div>
     <div class="activity">
       <p class="replies-count">
-        {{ repliesCount }} replies
+        {{ repliesCount(thread['.key']) }} replies
       </p>
       <!--<img class="avatar-medium" src="http://i0.kym-cdn.com/photos/images/facebook/000/010/934/46623-batman_pikachu_super.png" alt="">-->
       <!--<div>-->
@@ -29,6 +29,8 @@
 </template>
 
 <script>
+import { mapState, mapGetters } from 'vuex';
+
 export default {
   props: {
     thread: {
@@ -38,11 +40,14 @@ export default {
   },
 
   computed: {
-    repliesCount() {
-      return this.$store.getters.threadRepliesCount(this.thread['.key']);
-    },
+    ...mapState({
+      users: state => state.users
+    }),
+    ...mapGetters('threads', {
+      repliesCount: 'threadRepliesCount'
+    }),
     user() {
-      return this.$store.state.users[this.thread.userId];
+      return this.users[this.thread.userId];
     }
   }
 };

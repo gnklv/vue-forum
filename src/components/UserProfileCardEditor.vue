@@ -30,8 +30,8 @@
           placeholder="Write a few words about yourself."/>
       </div>
       <div class="stats">
-        <span>{{ userPostsCount }} posts</span>
-        <span>{{ userThreadsCount }} threads</span>
+        <span>{{ userPostsCount(user['.key']) }} posts</span>
+        <span>{{ userThreadsCount(user['.key']) }} threads</span>
       </div>
       <hr>
       <div class="form-group">
@@ -85,6 +85,8 @@
 </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex';
+
 export default {
   props: {
     user: {
@@ -100,17 +102,13 @@ export default {
   },
 
   computed: {
-    userThreadsCount() {
-      return this.$store.getters.userThreadsCount(this.user['.key']);
-    },
-    userPostsCount() {
-      return this.$store.getters.userPostsCount(this.user['.key']);
-    }
+    ...mapGetters('users', ['userThreadsCount', 'userPostsCount']),
   },
 
   methods: {
+    ...mapActions('users', ['updateUser']),
     save() {
-      this.$store.dispatch('updateUser', { ...this.activeUser });
+      this.updateUser({ ...this.activeUser });
       this.$router.push({ name: 'Profile' });
     },
     cancel() {

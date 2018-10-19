@@ -3,7 +3,8 @@
     <div class="col-2">
       <form 
         class="card card-form" 
-        @submit.prevent="register">
+        @submit.prevent="register"
+      >
         <h1 class="text-center">Register</h1>
         <div class="form-group">
           <label for="name">Full Name</label>
@@ -65,6 +66,8 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex';
+
 export default {
   data() {
     return {
@@ -83,14 +86,13 @@ export default {
   },
 
   methods: {
+    ...mapActions('auth', ['registerUserWithEmailAndPassword', 'signInWithGoogle']),
     register() {
-      this.$store
-        .dispatch('registerUserWithEmailAndPassword', this.form)
+      this.registerUserWithEmailAndPassword(this.form)
         .then(() => this.successRedirect());
     },
     registerWithGoogle() {
-      this.$store
-        .dispatch('signInWithGoogle')
+      this.signInWithGoogle()
         .then(() => this.successRedirect());
     },
     successRedirect() {

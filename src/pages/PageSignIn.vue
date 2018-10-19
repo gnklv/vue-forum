@@ -33,7 +33,7 @@
       <div class="push-top text-center">
         <button 
           class="btn-red btn-xsmall" 
-          @click="signInWithGoogle"
+          @click="signInViaGoogle"
         >
           <i class="fa fa-google fa-btn"/>
           Sign in with Google
@@ -44,6 +44,8 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex';
+
 export default {
   data() {
     return {
@@ -59,18 +61,14 @@ export default {
   },
 
   methods: {
+    ...mapActions('auth', ['signInWithEmailAndPassword', 'signInWithGoogle']),
     signIn() {
-      this.$store
-        .dispatch('signInWithEmailAndPassword', {
-          email: this.form.email,
-          password: this.form.password
-        })
+      this.signInWithEmailAndPassword({ email: this.form.email, password: this.form.password })
         .then(() => this.successRedirect())
         .catch(error => alert('🤷‍️' + error.message));
     },
-    signInWithGoogle() {
-      this.$store
-        .dispatch('signInWithGoogle')
+    signInViaGoogle() {
+      this.signInWithGoogle()
         .then(() => this.successRedirect())
         .catch(error => alert('🤷‍️' + error.message));
     },

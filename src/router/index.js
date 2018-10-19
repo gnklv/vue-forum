@@ -84,7 +84,7 @@ const router = new Router({
       name: 'SignOut',
       meta: { requiresAuth: true },
       beforeEnter(to, from, next) {
-        store.dispatch('signOut').then(() => next({ name: 'Home' }));
+        store.dispatch('auth/signOut').then(() => next({ name: 'Home' }));
       }
     },
     {
@@ -98,21 +98,15 @@ const router = new Router({
 
 router.beforeEach((to, from, next) => {
   console.log(`🚦 navigating to ${to.name} from ${from.name}`);
-  store.dispatch('initAuthentication').then(user => {
+  store.dispatch('auth/initAuthentication').then(user => {
     if (to.matched.some(route => route.meta.requiresAuth)) {
       // protected route
-      if (user) {
-        next();
-      } else {
-        next({ name: 'SignIn', query: { redirectTo: to.path } });
-      }
+      user ? next() : next({ name: 'SignIn', query: { redirectTo: to.path } });
+
     } else if (to.matched.some(route => route.meta.requiresGuest)) {
       //protected route
-      if (!user) {
-        next();
-      } else {
-        next({ name: 'Home' });
-      }
+      !user ? next() : next({ name: 'Home' });
+
     } else {
       next();
     }

@@ -18,13 +18,13 @@
       </div>
     </div>
     <div class="col-full push-top">
-      <ThreadList :threads="threads"/>
+      <ThreadList :threads="filteredThreads"/>
     </div>
   </div>
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { mapState, mapActions } from 'vuex';
 import ThreadList from '@/components/ThreadList';
 import asyncDataStatus from '@/mixins/asyncDataStatus';
 
@@ -43,13 +43,16 @@ export default {
   },
 
   computed: {
+    ...mapState({
+      forums: state => state.forums,
+      threads: state => state.threads
+    }),
     forum() {
-      return this.$store.state.forums[this.id];
+      return this.forums[this.id];
     },
-    threads() {
-      return Object.values(this.$store.state.threads).filter(
-        thread => thread.forumId === this.id
-      );
+    filteredThreads() {
+      return Object.values(this.threads)
+        .filter(thread => thread.forumId === this.id);
     }
   },
 
@@ -57,17 +60,15 @@ export default {
     this.fetchForum({ id: this.id })
       .then(forum => this.fetchThreads({ ids: forum.threads }))
       .then(threads =>
-        Promise.all(
-          threads.map(thread => this.fetchUser({ id: thread.userId }))
-        )
-      )
-      .then(() => {
-        this.asyncDataStatus_fetched();
-      });
+        Promise.all(threads.map(thread =>
+          this.fetchUser({ id: thread.userId }))))
+      .then(() => { this.asyncDataStatus_fetched(); });
   },
 
   methods: {
-    ...mapActions(['fetchForum', 'fetchThreads', 'fetchUser'])
+    ...mapActions('forums', ['fetchForum']),
+    ...mapActions('threads', ['fetchThreads']),
+    ...mapActions('users', ['fetchUser'])
   }
 };
 </script>

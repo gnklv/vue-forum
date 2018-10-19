@@ -14,8 +14,8 @@
           class="avatar-large" 
           alt="">
       </a>
-      <p class="desktop-only text-small">{{ userThreadsCount }} threads</p>
-      <p class="desktop-only text-small">{{ userPostsCount }} posts</p>
+      <p class="desktop-only text-small">{{ userThreadsCount(post.userId) }} threads</p>
+      <p class="desktop-only text-small">{{ userPostsCount(post.userId) }} posts</p>
     </div>
 
     <div class="post-content">
@@ -56,6 +56,7 @@
 </template>
 
 <script>
+import { mapState, mapGetters } from 'vuex';
 import PostEditor from './PostEditor';
 
 export default {
@@ -77,14 +78,12 @@ export default {
   },
 
   computed: {
+    ...mapState({
+      users: state => state.users
+    }),
+    ...mapGetters('users', ['userPostsCount', 'userThreadsCount']),
     user() {
-      return this.$store.state.users[this.post.userId];
-    },
-    userPostsCount() {
-      return this.$store.getters.userPostsCount(this.post.userId);
-    },
-    userThreadsCount() {
-      return this.$store.getters.userThreadsCount(this.post.userId);
+      return this.users[this.post.userId];
     }
   }
 };

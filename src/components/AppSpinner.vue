@@ -14,9 +14,11 @@
     <div class="sk-circle12 sk-circle"/>
   </div>
 </template>
+
 <script>
 export default {};
 </script>
+
 <style scoped>
 .sk-fading-circle {
   margin: 100px auto;

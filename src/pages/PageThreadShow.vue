@@ -24,10 +24,10 @@
         style="float:right; margin-top: 2px;" 
         class="hide-mobile text-faded text-small"
       >
-        {{ repliesCount }} replies by {{ contributorsCount }} contributors
+        {{ repliesCount(thread['.key']) }} replies by {{ contributorsCount }} contributors
       </span>
     </p>
-    <PostList :posts="posts"/>
+    <PostList :posts="filteredPosts"/>
     <PostEditor
       v-if="authUser"
       :thread-id="id"
@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex';
+import { mapState, mapGetters, mapActions } from 'vuex';
 import { countObjectProperties } from '@/utils';
 import PostList from '@/components/PostList';
 import PostEditor from '@/components/PostEditor';
@@ -66,26 +66,28 @@ export default {
   },
 
   computed: {
+    ...mapState({
+      threads: state => state.threads,
+      users: state => state.users,
+      posts: state => state.posts
+    }),
     ...mapGetters({
-      authUser: 'authUser'
+      authUser: 'auth/authUser',
+      repliesCount: 'threads/threadRepliesCount'
     }),
     thread() {
-      return this.$store.state.threads[this.id];
-    },
-    repliesCount() {
-      return this.$store.getters.threadRepliesCount(this.thread['.key']);
+      return this.threads[this.id];
     },
     user() {
-      return this.$store.state.users[this.thread.userId];
+      return this.users[this.thread.userId];
     },
     contributorsCount() {
       return countObjectProperties(this.thread.contributors);
     },
-    posts() {
+    filteredPosts() {
       const postIds = Object.values(this.thread.posts);
-      return Object.values(this.$store.state.posts).filter(post =>
-        postIds.includes(post['.key'])
-      );
+      return Object.values(this.posts)
+        .filter(post => postIds.includes(post['.key']));
     }
   },
 
@@ -96,11 +98,9 @@ export default {
         return this.fetchPosts({ ids: Object.keys(thread.posts) });
       })
       .then(posts =>
-        Promise.all(
-          posts.map(post => {
-            this.fetchUser({ id: post.userId });
-          })
-        )
+        Promise.all(posts.map(post => {
+          this.fetchUser({ id: post.userId });
+        }))
       )
       .then(() => {
         this.asyncDataStatus_fetched();
@@ -108,7 +108,9 @@ export default {
   },
 
   methods: {
-    ...mapActions(['fetchThread', 'fetchUser', 'fetchPosts'])
+    ...mapActions('posts', ['fetchPosts']),
+    ...mapActions('threads', ['fetchThread']),
+    ...mapActions('users', ['fetchUser'])
   }
 };
 </script>
